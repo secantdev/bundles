@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "bundle": {
+    "id": "com.example.minimal",
+    "version": "0.1.0",
+    "name": "minimal",
+    "description": "One Agent step that lists the open TODO comments in the Workspace."
+  },
+  "platforms": ["windows", "macos", "linux"],
+  "inputs": {},
+  "assets": [{ "kind": "prompt", "path": "prompts/main.md" }],
+  "routing": [
+    {
+      "id": "main",
+      "kind": "agent",
+      "session": "main",
+      "prompt": { "asset": "prompts/main.md" }
+    }
+  ]
+}

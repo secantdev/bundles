@@ -1,0 +1,64 @@
+name: Validate examples
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  # Weekly, so a new Secant release that rejects an example shows up unprompted.
+  schedule:
+    - cron: "23 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # The npm package ships Linux x64, macOS arm64 and Windows x64 builds.
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Install Secant
+        run: npm install --global --ignore-scripts @secantdev/secant@latest
+
+      - name: Print the Secant version
+        id: secant
+        run: |
+          version=$(secant --version | tr -d '\r')
+          echo "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Test the version gate
+        run: bash .github/scripts/version-gate-test.sh
+
+      # The gate goes when the first Secant release after 0.2.0 ships.
+      - name: Validate every example
+        env:
+          SECANT_VERSION: ${{ steps.secant.outputs.version }}
+        run: |
+          gate=$(bash .github/scripts/version-gate.sh "$SECANT_VERSION")
+          if [[ $gate == skip ]]; then
+            echo "::notice title=Validation skipped::Secant v$SECANT_VERSION is v0.2.0 or older and has no bundle validate. The examples need the first Secant release after v0.2.0."
+            exit 0
+          fi
+          status=0
+          for bundle in examples/*/bundle; do
+            echo "::group::$bundle"
+            if ! secant bundle validate "$bundle" --strict; then
+              echo "::error title=Validation failed::$bundle"
+              status=1
+            fi
+            echo "::endgroup::"
+          done
+          exit "$status"

@@ -1,0 +1,99 @@
+{
+  "formatVersion": 1,
+  "bundle": {
+    "id": "com.example.verdict-repeat",
+    "version": "0.1.0",
+    "name": "verdict-repeat",
+    "description": "Repeat an Agent fix and a test run until the tests pass, then commit in the same session once a human approves."
+  },
+  "platforms": ["windows", "macos", "linux"],
+  "inputs": {},
+  "assets": [
+    { "kind": "prompt", "path": "prompts/fix.md" },
+    { "kind": "prompt", "path": "prompts/commit.md" },
+    { "kind": "script", "path": "scripts/run-tests.sh" },
+    { "kind": "script", "path": "scripts/run-tests.ps1" }
+  ],
+  "routing": [
+    {
+      "id": "test",
+      "kind": "command",
+      "produces": [
+        { "name": "tests-pass", "type": "verdict" },
+        { "name": "test-output", "type": "text" }
+      ],
+      "command": {
+        "executable": "bash",
+        "arguments": [{ "asset": "scripts/run-tests.sh" }],
+        "workingDirectory": ".",
+        "platforms": {
+          "windows": {
+            "executable": "powershell.exe",
+            "arguments": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              { "asset": "scripts/run-tests.ps1" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "repeat": {
+        "until": "tests-pass",
+        "reviewCheckpoint": {
+          "interval": 3,
+          "message": "Three fixes have not made the tests pass. Keep going or stop?"
+        },
+        "steps": [
+          {
+            "id": "fix",
+            "kind": "agent",
+            "session": "main",
+            "requires": ["test-output"],
+            "prompt": { "asset": "prompts/fix.md" }
+          },
+          {
+            "id": "retest",
+            "kind": "command",
+            "produces": [
+              { "name": "tests-pass", "type": "verdict" },
+              { "name": "test-output", "type": "text" }
+            ],
+            "command": {
+              "executable": "bash",
+              "arguments": [{ "asset": "scripts/run-tests.sh" }],
+              "workingDirectory": ".",
+              "platforms": {
+                "windows": {
+                  "executable": "powershell.exe",
+                  "arguments": [
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    { "asset": "scripts/run-tests.ps1" }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "approve",
+      "kind": "human-gate",
+      "shape": "approve-reject",
+      "message": "The tests pass. Approve committing the fix?"
+    },
+    {
+      "id": "commit",
+      "kind": "agent",
+      "session": "main",
+      "prompt": { "asset": "prompts/commit.md" }
+    }
+  ]
+}

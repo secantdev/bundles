@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "bundle": {
+    "id": "com.example.interactive-skill",
+    "version": "0.1.0",
+    "name": "interactive-skill",
+    "description": "Talk an idea through with an agent that follows a bundled skill, and finish with BRIEF.md."
+  },
+  "platforms": ["windows", "macos", "linux"],
+  "inputs": {
+    "idea": {
+      "type": "text",
+      "description": "The rough idea to turn into a brief, in a sentence or two."
+    }
+  },
+  "assets": [
+    { "kind": "prompt", "path": "prompts/brief.md" },
+    { "kind": "skill", "path": "skills/project-brief" }
+  ],
+  "routing": [
+    {
+      "id": "brief",
+      "kind": "interactive-agent",
+      "session": "main",
+      "requires": ["idea"],
+      "entryTurn": true,
+      "prompt": { "asset": "prompts/brief.md" },
+      "uses": [{ "asset": "skills/project-brief" }],
+      "agentCompletion": ["step"],
+      "stepDoneWhen": "When BRIEF.md is written and I have said it is right, call step done with a one-line reason."
+    }
+  ]
+}

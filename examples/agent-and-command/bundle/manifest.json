@@ -1,0 +1,49 @@
+{
+  "formatVersion": 1,
+  "bundle": {
+    "id": "com.example.agent-and-command",
+    "version": "0.1.0",
+    "name": "agent-and-command",
+    "description": "An Agent step writes SUMMARY.md, then a Command step runs a script whose exit status records whether it is short enough."
+  },
+  "platforms": ["windows", "macos", "linux"],
+  "inputs": {},
+  "assets": [
+    { "kind": "prompt", "path": "prompts/summarize.md" },
+    { "kind": "script", "path": "scripts/check-summary.sh" },
+    { "kind": "script", "path": "scripts/check-summary.ps1" }
+  ],
+  "routing": [
+    {
+      "id": "summarize",
+      "kind": "agent",
+      "session": "main",
+      "prompt": { "asset": "prompts/summarize.md" }
+    },
+    {
+      "id": "check",
+      "kind": "command",
+      "produces": [
+        { "name": "summary-ok", "type": "verdict" },
+        { "name": "check-output", "type": "text" }
+      ],
+      "command": {
+        "executable": "bash",
+        "arguments": [{ "asset": "scripts/check-summary.sh" }],
+        "workingDirectory": ".",
+        "platforms": {
+          "windows": {
+            "executable": "powershell.exe",
+            "arguments": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              { "asset": "scripts/check-summary.ps1" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
