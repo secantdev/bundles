@@ -1,6 +1,7 @@
 ---
 name: secant-bundle-author
 description: Designs, builds and tries a Secant Workflow Bundle with the user, showing a drawn sketch they confirm round by round before any Bundle file is written. Use when the user wants to make a Secant workflow or Bundle, or to change an installed one.
+license: MIT
 ---
 
 # Secant Bundle author

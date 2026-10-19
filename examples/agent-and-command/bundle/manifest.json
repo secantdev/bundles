@@ -4,7 +4,8 @@
     "id": "com.example.agent-and-command",
     "version": "0.1.0",
     "name": "agent-and-command",
-    "description": "An Agent step writes SUMMARY.md, then a Command step runs a script whose exit status records whether it is short enough."
+    "description": "An Agent step writes SUMMARY.md, then a Command step runs a script whose exit status records whether it is short enough.",
+    "license": "MIT"
   },
   "platforms": ["windows", "macos", "linux"],
   "inputs": {},

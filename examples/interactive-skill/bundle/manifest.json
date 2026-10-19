@@ -4,7 +4,8 @@
     "id": "com.example.interactive-skill",
     "version": "0.1.0",
     "name": "interactive-skill",
-    "description": "Talk an idea through with an agent that follows a bundled skill, and finish with BRIEF.md."
+    "description": "Talk an idea through with an agent that follows a bundled skill, and finish with BRIEF.md.",
+    "license": "MIT"
   },
   "platforms": ["windows", "macos", "linux"],
   "inputs": {

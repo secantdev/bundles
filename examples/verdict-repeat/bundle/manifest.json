@@ -4,7 +4,8 @@
     "id": "com.example.verdict-repeat",
     "version": "0.1.0",
     "name": "verdict-repeat",
-    "description": "Repeat an Agent fix and a test run until the tests pass, then commit in the same session once a human approves."
+    "description": "Repeat an Agent fix and a test run until the tests pass, then commit in the same session once a human approves.",
+    "license": "MIT"
   },
   "platforms": ["windows", "macos", "linux"],
   "inputs": {},
