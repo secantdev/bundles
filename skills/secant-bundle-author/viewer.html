@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow sketch</title>
+<style>
+:root {
+  --paper: #eef0ea; --card: #fbfcf9; --tint: #e5e9e0; --ink: #0b2545; --muted: #55657a; --line: #c3cabd; --flow: #8795a6;
+  --new: #1d5fb8; --changed: #946000; --gone: #8a8f96;
+  --cw: 560px; --g: 52px;
+  --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Newsreader", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #0d1726; --card: #15233c; --tint: #111d31; --ink: #e6ebf2; --muted: #9fb0c6; --line: #2e3f5c; --flow: #5d6f88;
+    --new: #79a3e3; --changed: #ebbd58; --gone: #6b7686; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); }
+main { max-width: calc(var(--cw) + 32px); margin: 0 auto; padding: 40px 16px 80px; }
+h1 { font: 600 28px/1.2 var(--serif); margin: 0; }
+h2 { font: 600 15px/1.3 var(--sans); margin: 40px 0 8px; }
+p { margin: 0; }
+.meta { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+.meta a { color: inherit; } .meta .new { color: var(--new); } .meta .changed { color: var(--changed); }
+.summary { margin-top: 10px; }
+.inputs { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.inputs b { color: var(--ink); font-weight: 500; }
+svg.i { width: 14px; height: 14px; flex: none; vertical-align: -2px; }
+
+.flow { margin-top: 36px; display: flex; flex-direction: column; align-items: center; }
+.cap { font-size: 13px; font-weight: 600; padding: 5px 18px; border-radius: 999px; border: 1.5px solid var(--flow); background: var(--card); }
+
+/* An arrow between two things; what moves along it rides on it. */
+.link { position: relative; align-self: stretch; display: flex; justify-content: center; align-items: center; min-height: 56px; padding: 10px 0 18px; }
+.link.short { min-height: 32px; padding: 0; }
+.link.tail { min-height: 48px; padding: 10px 0; }
+.link::before { content: ""; position: absolute; top: 0; bottom: 7px; left: 50%; width: 2px; margin-left: -1px; background: var(--flow); }
+.link::after { content: ""; position: absolute; bottom: 0; left: 50%; margin-left: -6px; border: 6px solid transparent; border-top: 7px solid var(--flow); border-bottom: 0; }
+.link.tail::before { bottom: 0; } .link.tail::after { display: none; }
+.rides { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 3px 6px; background: var(--paper); max-width: 92%; }
+.loop .rides { background: var(--tint); }
+.pill { font-size: 12px; line-height: 18px; padding: 2px 10px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+.pill span { color: var(--muted); }
+.pill.say { background: none; border-color: transparent; color: var(--muted); font-style: italic; padding: 2px 4px; }
+.pill.gone { background: none; border-style: dashed; color: var(--gone); text-decoration: line-through; }
+
+.card { width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 14px; cursor: pointer; scroll-margin-top: 16px; position: relative; z-index: 1; }
+.card:hover { border-color: var(--flow); }
+.card:focus-visible { outline: 2px solid var(--new); outline-offset: 2px; }
+.card.is-new { box-shadow: inset 3px 0 0 var(--new); border-color: var(--new); }
+.card.is-changed { box-shadow: inset 3px 0 0 var(--changed); border-color: var(--changed); }
+.who { display: flex; align-items: center; gap: 7px; font-size: 12px; line-height: 20px; color: var(--muted); }
+.n { min-width: 20px; height: 20px; border-radius: 6px; background: var(--tint); color: var(--ink); font-weight: 600; text-align: center; padding: 0 5px; }
+.mark { margin-left: auto; font-size: 12px; font-weight: 600; }
+.is-new > .mark, .is-new .who .mark { color: var(--new); }
+.is-changed > .mark, .is-changed .who .mark { color: var(--changed); }
+.does { font-size: 16px; font-weight: 600; line-height: 1.4; margin-top: 6px; }
+.was { color: var(--gone); text-decoration: line-through; font-size: 14px; margin-top: 2px; }
+.sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.sub b { color: var(--ink); font-weight: 500; }
+.more { display: none; border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; font-size: 13px; cursor: auto; }
+.open .more { display: block; }
+.more dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 14px; margin: 0; }
+.more dt { color: var(--muted); } .more dd { margin: 0; min-width: 0; }
+pre { white-space: pre-wrap; font: 12px/1.5 var(--mono); margin: 0; background: var(--paper); border-radius: 6px; padding: 8px 10px; }
+button { font: 500 12px var(--sans); color: var(--ink); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; margin-top: 12px; cursor: pointer; }
+button:hover { border-color: var(--flow); }
+
+/* A loop is wider than the column, so its Steps line up with the ones outside it. */
+.loop { position: relative; align-self: stretch; margin: 0 calc(-1 * var(--g) - 1.5px); padding: 0 var(--g); background: var(--tint);
+  border: 1.5px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; align-items: center; scroll-margin-top: 16px; }
+.loop.is-new { border-color: var(--new); } .loop.is-changed { border-color: var(--changed); }
+.loop-head { align-self: stretch; margin: 0 calc(-1 * var(--g)); padding: 11px var(--g) 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.loop-head .title { font-weight: 600; display: flex; align-items: flex-start; gap: 7px; }
+.loop-head .title svg { margin-top: 3px; }
+.loop-head .sub { margin-top: 2px; padding-left: 21px; font-size: 12px; }
+.loop svg.back { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; color: var(--flow); }
+.loop svg.back text { font: italic 12px var(--sans); fill: var(--muted); }
+
+.notes { margin: 0; padding-left: 18px; } .notes li { margin: 4px 0; }
+.banner { border: 1px solid var(--changed); padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+.hint { font-size: 12px; color: var(--muted); margin-top: 32px; }
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--paper);
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px); }
+.toast.on { opacity: 1; }
+@media (max-width: 700px) { :root { --g: 28px; } .loop { margin: 0 -12px; } .loop svg.back text { display: none; } }
+</style>
+</head>
+<body>
+<main id="app"><p class="meta">Waiting for sketch.js…</p></main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+// Draws ./sketch.js, which calls secantSketch({...}). Re-reads it every
+// second, so the page follows the agent's edits without a server.
+const KEY = "secant-sketch:" + location.pathname;
+const ICON = {
+  ai: '<path d="M8 1.5l1.6 4.9L14.5 8l-4.9 1.6L8 14.5 6.4 9.6 1.5 8l4.9-1.6z" fill="currentColor"/>',
+  "ai-chat": '<path d="M2 3.5h12v7H7l-3 2.5v-2.5H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',
+  you: '<circle cx="8" cy="5" r="2.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 14c.6-2.8 2.6-4.2 5-4.2s4.4 1.4 5 4.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+  script: '<path d="M3 4.5l3.5 3.5L3 11.5M8.5 12h4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  loop: '<path d="M12.5 6A5 5 0 0 0 3.2 5M3.5 10a5 5 0 0 0 9.3 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 2.2V5.3h3.1M13 13.8v-3.1H9.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+};
+const icon = (k) => `<svg class="i" viewBox="0 0 16 16" aria-hidden="true">${ICON[k] || ""}</svg>`;
+const WHO = { ai: "AI", "ai-chat": "AI with you", you: "You decide", script: "Script" };
+const FIELD = { who: "who does it", does: "what it does", ask: "kind of decision", suggestions: "suggested answers",
+  needs: "what it uses", gives: "what it gives", conversation: "conversation", prompt: "instructions",
+  run: "command", skills: "skills", notes: "notes", title: "title", place: "place in the order" };
+let current = "", sketchError = "";
+const opened = new Set();
+
+window.onerror = (msg, src) => { if (String(src).includes("sketch.js")) { sketchError = String(msg); render(); } };
+window.secantSketch = (data) => {
+  sketchError = "";
+  const text = JSON.stringify(data);
+  if (text === current) return;
+  current = text;
+  try { const r = JSON.parse(localStorage.getItem(KEY)) || {}; r[data.round] = data; localStorage.setItem(KEY, JSON.stringify(r)); } catch {}
+  render();
+};
+function load() {
+  document.getElementById("sketch-src")?.remove();
+  const s = document.createElement("script");
+  s.id = "sketch-src";
+  s.src = "sketch.js?v=" + Date.now();
+  s.onerror = () => { if (!current) document.getElementById("app").innerHTML = '<p class="banner">No sketch.js next to this page yet.</p>'; };
+  document.head.appendChild(s);
+}
+load();
+setInterval(load, 1000);
+
+// The round before this one, as this browser last saw it.
+function previous(data) {
+  let r = {};
+  try { r = JSON.parse(localStorage.getItem(KEY)) || {}; } catch {}
+  const n = Object.keys(r).map(Number).filter((k) => k < data.round).sort((a, b) => b - a)[0];
+  return n === undefined ? null : r[n];
+}
+
+const loopKey = (n) => "loop:" + (n.id || n.loop.until || "human");
+const keyOf = (n) => (n.loop ? loopKey(n) : n.id);
+function index(flow) {
+  const m = new Map();
+  for (const n of flow || []) {
+    m.set(keyOf(n), { node: n, place: "top" });
+    if (n.loop) for (const s of n.steps || []) m.set(s.id, { node: s, place: loopKey(n) });
+  }
+  return m;
+}
+function changes(now, was) {
+  const st = new Map();
+  if (!was) return st;
+  for (const [k, { node, place }] of now) {
+    const old = was.get(k);
+    if (!old) { st.set(k, { state: "new" }); continue; }
+    const a = { ...node, steps: undefined, place }, b = { ...old.node, steps: undefined, place: old.place };
+    const fields = [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((f) => JSON.stringify(a[f]) !== JSON.stringify(b[f]));
+    if (fields.length) st.set(k, { state: "changed", fields, old: old.node });
+  }
+  return st;
+}
+// Pairs each current node with the removed ones that stood just before it.
+function arrange(list, oldList, nowKeys) {
+  const here = new Set(list.map(keyOf)), before = new Map(), tail = [];
+  (oldList || []).forEach((n, i) => {
+    if (nowKeys.has(keyOf(n))) return;
+    const next = oldList.slice(i + 1).find((m) => here.has(keyOf(m)));
+    if (!next) return tail.push(n);
+    if (!before.has(keyOf(next))) before.set(keyOf(next), []);
+    before.get(keyOf(next)).push(n);
+  });
+  return { items: list.map((n) => ({ node: n, removed: before.get(keyOf(n)) || [] })), tail };
+}
+
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const words = (name) => String(name).replace(/[-_.]+/g, " ");
+const list = (xs) => xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1];
+const either = (xs) => xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " or " + xs[xs.length - 1];
+
+function render() {
+  if (!current) return;
+  const data = JSON.parse(current);
+  const prev = previous(data);
+  const now = index(data.flow), was = prev ? index(prev.flow) : null;
+  const st = changes(now, was);
+  const nowKeys = new Set(now.keys());
+
+  const num = new Map(), loopOf = new Map(), givers = new Map();
+  let n = 0;
+  for (const node of data.flow || []) for (const s of node.loop ? node.steps || [] : [node]) {
+    num.set(s.id, ++n);
+    if (node.loop) loopOf.set(s.id, node);
+    for (const g of s.gives || []) { if (!givers.has(g.name)) givers.set(g.name, []); givers.get(g.name).push(s.id); }
+  }
+  const inputs = new Set((data.inputs || []).map((i) => i.name));
+  const from = (name, s) => {
+    if (inputs.has(name)) return "you, at the start";
+    const L = loopOf.get(s.id);
+    const ns = (givers.get(name) || []).filter((g) => num.get(g) < num.get(s.id) || (L && loopOf.get(g) === L)).map((g) => num.get(g));
+    return ns.length ? "step " + either(ns) : "nowhere yet";
+  };
+  const convFirst = new Map();
+  for (const [id] of num) { const s = now.get(id).node; if (s.conversation && !convFirst.has(s.conversation)) convFirst.set(s.conversation, id); }
+
+  const mark = (k) => { const c = st.get(k); return c ? `<span class="mark">${c.state === "new" ? "New" : "Changed"}</span>` : ""; };
+  const gone = (r) => `<span class="pill gone" title="Removed in this round">removed · ${esc(r.loop ? "Repeat until " + words(r.loop.until || "you end it") : r.does || r.id)}</span>`;
+  const out = (s) => (s && !s.loop ? s.gives || [] : []).map((g) => `<span class="pill">${esc(words(g.name))}${g.type === "pass/fail" ? " <span>· pass/fail</span>" : ""}</span>`);
+  const link = (pills, cls = "") => `<div class="link ${cls}">${pills.length ? `<div class="rides">${pills.join("")}</div>` : ""}</div>`;
+  // What the arrow leaving a node says about how the flow goes on.
+  const leaving = (node) => node.loop ? [`<span class="pill say">${node.loop.by === "you" ? "when you end it" : "passed"}</span>`]
+    : node.who === "you" && node.ask !== "answer" ? ['<span class="pill say">if approved</span>'] : [];
+
+  const card = (s) => {
+    const c = st.get(s.id), L = loopOf.get(s.id);
+    const who = WHO[s.who] || "Unknown (" + esc(s.who) + ")";
+    const lines = [];
+    if (s.who === "you") lines.push(s.ask === "answer"
+      ? "You type an answer" + (s.suggestions ? ": " + s.suggestions.map(esc).join(" · ") + " · or anything else" : "")
+      : "Approve to go on. Rejecting ends the run.");
+    if (s.who === "ai-chat") lines.push("You chat with the AI until this step is done.");
+    const uses = (s.needs || []).map((x) => `<b>${esc(words(x))}</b> from ${from(x, s)}`);
+    if (uses.length) lines.push("Uses " + list(uses));
+    const first = s.conversation && convFirst.get(s.conversation);
+    if (first && first !== s.id) lines.push(`Continues the conversation from step ${num.get(first)}`);
+    for (const x of s.notes || []) lines.push(esc(x));
+    const rows = [
+      s.prompt && ["Instructions", `<pre>${esc(s.prompt)}</pre>`],
+      s.run && ["Command", `<pre>${esc(s.run)}</pre>`],
+      (s.skills || []).length && ["Skills", esc(s.skills.join(", "))],
+      c && c.state === "changed" && ["Changed", esc(c.fields.map((f) => FIELD[f] || f).join(", "))],
+    ].filter(Boolean);
+    const ref = `Step ${num.get(s.id)} "${s.id}" (${who}${L ? ", inside the repeat until " + words(L.loop.until || "you end it") : ""})`;
+    const old = c && c.state === "changed" && c.fields.includes("does") ? `<p class="was">${esc(c.old.does)}</p>` : "";
+    return `<div class="card ${c ? "is-" + c.state : ""} ${opened.has(s.id) ? "open" : ""}" id="s-${esc(s.id)}" tabindex="0" role="button" aria-expanded="${opened.has(s.id)}" data-id="${esc(s.id)}">
+      <div class="who"><span class="n">${num.get(s.id)}</span>${icon(s.who)}${who}${mark(s.id)}</div>
+      <p class="does">${esc(s.does)}</p>${old}
+      ${lines.map((l) => `<p class="sub">${l}</p>`).join("")}
+      <div class="more">${rows.length ? `<dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>` : ""}
+        <button data-ref="${esc(ref)}">Copy reference</button></div>
+    </div>`;
+  };
+
+  const loop = (node) => {
+    const L = node.loop, k = loopKey(node), c = st.get(k);
+    const old = was && was.get(k);
+    const { items, tail } = arrange(node.steps || [], old && old.node.steps, nowKeys);
+    const nums = (node.steps || []).map((s) => num.get(s.id));
+    const span = nums.length > 1 ? `steps ${nums[0]}–${nums[nums.length - 1]}` : `step ${nums[0] ?? "–"}`;
+    const title = L.by === "you" ? `Repeat ${span} until you end it` : `Repeat ${span} until ${esc(words(L.until))} comes back pass`;
+    const sub = L.by === "you"
+      ? "Each round starts a fresh conversation" + (L.checkEvery ? `; checks in every ${esc(L.checkEvery)} rounds.` : ".")
+      : `Checked before each round, so it may not run at all. Every ${esc(L.checkEvery)} rounds without a pass, asks you to keep going or stop the run.`;
+    let html = "";
+    items.forEach(({ node: s, removed }, i) => {
+      html += link([...(i ? out(items[i - 1].node) : []), ...removed.map(gone)], i || removed.length ? "" : "short");
+      html += card(s);
+    });
+    html += link([...out(items.length ? items[items.length - 1].node : null), ...tail.map(gone)], "tail");
+    return `<section class="loop ${c ? "is-" + c.state : ""}" id="${esc(k)}" data-back="${L.by === "you" ? "next round" : "not passed yet"}">
+      <div class="loop-head"><div class="title">${icon("loop")}${title}${mark(k)}</div><p class="sub">${sub}</p>${(node.notes || []).map((x) => `<p class="sub">${esc(x)}</p>`).join("")}</div>${html}</section>`;
+  };
+
+  const { items, tail } = arrange(data.flow || [], prev && prev.flow, nowKeys);
+  const startPills = (data.inputs || []).map((i) => `<span class="pill">${esc(words(i.name))}${i.type && i.type !== "text" ? " <span>· " + esc(i.type) + "</span>" : ""}</span>`);
+  let flow = '<div class="cap">Start</div>';
+  items.forEach(({ node, removed }, i) => {
+    const prevNode = i ? items[i - 1].node : null;
+    flow += link([...(prevNode ? [...out(prevNode), ...leaving(prevNode)] : startPills), ...removed.map(gone)]);
+    flow += node.loop ? loop(node) : card(node);
+  });
+  const last = items.length ? items[items.length - 1].node : null;
+  flow += link([...(last ? [...out(last), ...leaving(last)] : startPills), ...tail.map(gone)]) + '<div class="cap">Done</div>';
+
+  const count = (state) => [...st.entries()].filter(([, c]) => c.state === state);
+  const removedCount = was ? [...was.keys()].filter((k) => !nowKeys.has(k)).length : 0;
+  const jump = (state, label) => { const xs = count(state); return xs.length ? `<a class="${state}" href="#${esc(xs[0][0].startsWith("loop:") ? xs[0][0] : "s-" + xs[0][0])}">${xs.length} ${label}</a>` : ""; };
+  const diff = prev ? [jump("new", "new"), jump("changed", "changed"), removedCount ? removedCount + " removed" : ""].filter(Boolean).join(" · ") || "no changes" : "";
+  const startLine = (data.inputs || []).length
+    ? `<p class="inputs">You start it with ${list(data.inputs.map((i) => `<b>${esc(words(i.name))}</b>: ${esc(i.says)}`))}.</p>` : "";
+  const section = (title, xs) => xs && xs.length ? `<h2>${title}</h2><ul class="notes">${xs.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+
+  document.getElementById("app").innerHTML = `
+    ${sketchError ? `<p class="banner">sketch.js has an error; showing the last good version. ${esc(sketchError)}</p>` : ""}
+    <p class="meta">Round ${esc(data.round)}${prev ? ` · since round ${esc(prev.round)}: ${diff}` : ""}</p>
+    <h1>${esc(data.title)}</h1>
+    <p class="summary">${esc(data.summary)}</p>
+    ${startLine}
+    <div class="flow">${flow}</div>
+    ${section("Secant can’t do this as asked", data.limits)}
+    ${section("Still open", data.open)}
+    <p class="hint">Click a step for its details. Tell your agent what to change, by step number.</p>`;
+  drawBacks();
+}
+
+// The arrow up a loop's right side, from its last Step back to its first.
+function drawBacks() {
+  for (const sec of document.querySelectorAll(".loop")) {
+    sec.querySelector("svg.back")?.remove();
+    const cards = sec.querySelectorAll(":scope > .card");
+    if (!cards.length) continue;
+    const box = sec.getBoundingClientRect(), a = cards[0].getBoundingClientRect(), b = cards[cards.length - 1].getBoundingClientRect();
+    const edge = a.right - box.left, gutter = box.right - a.right;
+    const x = edge + gutter / 2 - 4, r = 8;
+    const y1 = a.top - box.top + 22, y2 = Math.max(b.top - box.top + b.height / 2, y1 + 2 * r + 8);
+    sec.insertAdjacentHTML("beforeend", `<svg class="back" aria-hidden="true">
+      <path d="M${edge} ${y2} H${x - r} Q${x} ${y2} ${x} ${y2 - r} V${y1 + r} Q${x} ${y1} ${x - r} ${y1} H${edge + 2}" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M${edge + 9} ${y1 - 5} L${edge + 2} ${y1} L${edge + 9} ${y1 + 5}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <text transform="translate(${x + 12} ${(y1 + y2) / 2}) rotate(90)" text-anchor="middle" dominant-baseline="middle">${sec.dataset.back}</text></svg>`);
+  }
+}
+new ResizeObserver(drawBacks).observe(document.getElementById("app"));
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-ref]");
+  if (b) return copy(b.dataset.ref);
+  if (e.target.closest(".more")) return;
+  const card = e.target.closest(".card[data-id]");
+  if (card) toggle(card);
+});
+document.addEventListener("keydown", (e) => {
+  const card = e.target.closest?.(".card[data-id]");
+  if (card && e.target === card && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(card); }
+});
+function toggle(card) {
+  const id = card.dataset.id;
+  opened.has(id) ? opened.delete(id) : opened.add(id);
+  card.classList.toggle("open");
+  card.setAttribute("aria-expanded", opened.has(id));
+}
+function copy(text) {
+  const done = () => toast("Copied: " + text);
+  const fallback = () => {
+    const t = document.createElement("textarea");
+    t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand("copy") ? done() : toast(text); } catch { toast(text); }
+    t.remove();
+  };
+  navigator.clipboard ? navigator.clipboard.writeText(text).then(done, fallback) : fallback();
+}
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2400);
+}
+</script>
+</body>
+</html>

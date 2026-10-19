@@ -22,6 +22,13 @@ The examples need the first Secant release after v0.2.0. Secant v0.2.0 has no `b
 3. Read the authoring guide for the Secant you run with `secant bundle docs`.
 4. Run `secant bundle validate ./bundle --strict` until it reports zero problems.
 
+## Authoring skill
+
+[`skills/secant-bundle-author`](skills/secant-bundle-author) lets your agent design a Bundle with you. It draws the workflow as a sketch you
+confirm round by round, then writes, validates and builds the Bundle in a temporary project, and offers a demo run in a throwaway git worktree.
+Copy the folder into your agent's skills directory and ask for a Secant workflow. Like the examples, it needs the first Secant release after
+v0.2.0.
+
 ## Checks
 
 [`validate.yml`](.github/workflows/validate.yml) installs `@secantdev/secant@latest` from npm on Linux, macOS and Windows, prints `secant --version`,
